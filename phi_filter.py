@@ -1,21 +1,19 @@
-"""PHI/PII-safe wrapper: scrub sensitive patterns before any content leaves
-the process (an LLM prompt, a Confluence page, a Jira ticket, a log line).
+"""Soft PII redaction: mask low-sensitivity, operationally-necessary
+contact details (email, phone, IP) before any content leaves the process,
+while still letting the message through — a ticket needs a reporter's
+email, a network issue needs an IP. Keep audit counts, but don't block.
 
-This is a defensive redaction layer, not a compliance certification — it
-catches the common structured leaks (SSNs, emails, phone numbers, card
-numbers, MRNs) so ARIA never round-trips them through a third-party API
-or an LLM provider.
+High-sensitivity data — SSNs, card numbers, medical record numbers — is
+NOT handled here. That's a hard refusal, not a mask-and-continue, and
+lives in guardrails.py instead.
 """
 import re
 from typing import List, Tuple
 from models import RedactionNote
 
 _PATTERNS: List[Tuple[str, re.Pattern]] = [
-    ("SSN", re.compile(r"\b\d{3}-\d{2}-\d{4}\b")),
     ("EMAIL", re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")),
     ("PHONE", re.compile(r"\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}\b")),
-    ("CREDIT_CARD", re.compile(r"\b(?:\d[ -]*?){13,16}\b")),
-    ("MRN", re.compile(r"\bMRN[:#]?\s*\d{5,10}\b", re.IGNORECASE)),
     ("IP_ADDRESS", re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")),
 ]
 

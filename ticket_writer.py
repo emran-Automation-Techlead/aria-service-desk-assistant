@@ -16,6 +16,7 @@ async def build_ticket(team_label: str, history: list[ChatMessage]) -> dict:
 
     response = await _oai.chat.completions.create(
         model=settings.aria_model,
+        temperature=settings.aria_temperature,
         messages=[
             {"role": "system", "content": TICKET_WRITER_SYSTEM},
             {"role": "user", "content": ticket_writer_prompt(team_label, conversation_text)},

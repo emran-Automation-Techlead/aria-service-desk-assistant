@@ -11,7 +11,8 @@
     ],
     "body": "1. Go to the self-service portal at password.company.internal.\n2. Enter your network username and answer your security questions.\n3. Choose a new password meeting the 12-character complexity policy.\n4. Allow up to 5 minutes for the change to replicate to all domain controllers.\nIf the self-service portal is unavailable, call the Service Desk at x4357 for a manual reset.",
     "url": "",
-    "source": "seed"
+    "source": "seed",
+    "doc_type": "Troubleshooting Guide"
   },
   {
     "id": "SD-002",
@@ -24,7 +25,23 @@
     ],
     "body": "Submit a hardware request through the ITSD portal under Catalog > Hardware. Standard laptops ship within 5 business days; expedited requests require director approval and ship within 2 business days.",
     "url": "",
-    "source": "seed"
+    "source": "seed",
+    "doc_type": "How-To Guide"
+  },
+  {
+    "id": "SD-003",
+    "team": "service_desk",
+    "title": "Outlook stuck on \"Trying to connect\"",
+    "tags": [
+      "outlook",
+      "email",
+      "connectivity",
+      "troubleshooting"
+    ],
+    "body": "1. Check the Office 365 status page for an active mail outage before troubleshooting locally.\n2. Restart Outlook in safe mode (hold Ctrl while launching) to rule out a bad add-in.\n3. Run Outlook's built-in 'Test Email AutoConfiguration' (Ctrl+Right-click the Outlook tray icon) to confirm Autodiscover is resolving.\n4. If Autodiscover fails, remove and re-add the profile via Control Panel > Mail.\n5. If it persists across profiles, escalate to Service Desk \u2014 likely a mailbox-side issue.",
+    "url": "",
+    "source": "seed",
+    "doc_type": "Troubleshooting Guide"
   },
   {
     "id": "CMD-001",
@@ -38,7 +55,8 @@
     ],
     "body": "1. Declare the incident in the ITSM tool and set severity to SEV1.\n2. Open the incident bridge (bridge.company.internal) and post the bridge link in #incident-response.\n3. Page the on-call lead for the affected service via the paging tool.\n4. Post a status update every 15 minutes until mitigated.\n5. File a post-incident review within 48 hours of resolution.",
     "url": "",
-    "source": "seed"
+    "source": "seed",
+    "doc_type": "Runbook"
   },
   {
     "id": "CMD-002",
@@ -52,7 +70,23 @@
     ],
     "body": "Command Center dashboards live in Grafana under the 'NOC' org. Request access via the ITSD portal, selecting 'Command Center' as the fulfillment group. Access is granted within one business day.",
     "url": "",
-    "source": "seed"
+    "source": "seed",
+    "doc_type": "How-To Guide"
+  },
+  {
+    "id": "CMD-003",
+    "team": "command_center",
+    "title": "Triaging a flapping / noisy alert",
+    "tags": [
+      "alert",
+      "flapping",
+      "noise",
+      "troubleshooting"
+    ],
+    "body": "1. Confirm the alert is genuinely flapping (repeated fire/resolve within minutes) rather than a real intermittent outage \u2014 check the underlying metric graph, not just the alert log.\n2. Check recent deploys or config changes to the alerting rule or the monitored service around the time flapping started.\n3. If the threshold is too tight for normal variance, do not silence the alert permanently \u2014 file a ticket with the owning team to tune the threshold or add a for-duration clause.\n4. Mute for a bounded window (max 4 hours) with a reason noted in the mute, never an indefinite mute.\n5. Escalate to the service owner if flapping continues past the mute window.",
+    "url": "",
+    "source": "seed",
+    "doc_type": "Troubleshooting Guide"
   },
   {
     "id": "NET-001",
@@ -65,7 +99,8 @@
     ],
     "body": "1. Confirm the client is on the latest VPN agent version.\n2. Verify DNS resolves internal.company.com from the client.\n3. Check that the user's account is not locked in the RADIUS server.\n4. If MFA push fails, confirm the device clock is in sync (NTP drift >30s breaks TOTP).\n5. Escalate to Network Team with a packet capture if the tunnel establishes but no traffic passes.",
     "url": "",
-    "source": "seed"
+    "source": "seed",
+    "doc_type": "Troubleshooting Guide"
   },
   {
     "id": "NET-002",
@@ -78,7 +113,23 @@
     ],
     "body": "Firewall changes require a Change Request with source/destination CIDR, port, protocol, and business justification. Submit via the Network Team Jira project; standard changes are reviewed in the weekly CAB, emergency changes can be expedited by paging the on-call network engineer.",
     "url": "",
-    "source": "seed"
+    "source": "seed",
+    "doc_type": "How-To Guide"
+  },
+  {
+    "id": "NET-003",
+    "team": "network",
+    "title": "Wi-Fi connectivity issues on the corporate SSID",
+    "tags": [
+      "wifi",
+      "wireless",
+      "connectivity",
+      "troubleshooting"
+    ],
+    "body": "1. Confirm the device is joined to the 'CORP-SECURE' SSID, not the guest network.\n2. Forget and rejoin the network to force a fresh EAP-TLS/PEAP handshake \u2014 most auth failures are a stale cached credential.\n3. Check the switch port / AP the user is nearest to for recent error counters in the wireless controller.\n4. If only one floor/AP is affected, check for AP reboot or firmware update events in that time window.\n5. Escalate to Network Team with the AP name and timestamp if the issue is isolated to a specific access point.",
+    "url": "",
+    "source": "seed",
+    "doc_type": "Troubleshooting Guide"
   },
   {
     "id": "LNX-001",
@@ -92,7 +143,8 @@
     ],
     "body": "1. SSH to the host and run `df -h` to identify the full mount.\n2. Check `/var/log` for oversized logs; rotate with `logrotate -f`.\n3. Check for orphaned Docker layers with `docker system df` and prune if safe.\n4. If the root cause is legitimate growth, file a Jira ticket to expand the LVM volume.\n5. Never delete files under `/var/lib` without confirming the owning service first.",
     "url": "",
-    "source": "seed"
+    "source": "seed",
+    "doc_type": "Troubleshooting Guide"
   },
   {
     "id": "LNX-002",
@@ -106,7 +158,23 @@
     ],
     "body": "Sudo access requests go through the Linux Team Jira project with manager approval attached. Access is granted via the internal LDAP sudoers group and expires after 90 days unless renewed.",
     "url": "",
-    "source": "seed"
+    "source": "seed",
+    "doc_type": "How-To Guide"
+  },
+  {
+    "id": "LNX-003",
+    "team": "linux",
+    "title": "systemd service fails to start",
+    "tags": [
+      "systemd",
+      "service",
+      "linux",
+      "troubleshooting"
+    ],
+    "body": "1. Run `systemctl status <service>` to see the last exit code and recent log lines.\n2. Run `journalctl -u <service> -n 100 --no-pager` for full startup logs.\n3. Check the unit file for a missing or unreachable `ExecStart` path with `systemctl cat <service>`.\n4. Verify any dependent services listed in `After=`/`Requires=` are themselves running.\n5. If the binary segfaults on start, check for a recent package update and consider rolling back with the package manager's version history.",
+    "url": "",
+    "source": "seed",
+    "doc_type": "Troubleshooting Guide"
   },
   {
     "id": "DBA-001",
@@ -120,7 +188,8 @@
     ],
     "body": "1. Open a ticket in the DBA project specifying the database, target point-in-time, and destination instance (never restore directly over production).\n2. DBA on-call validates the backup chain and estimated restore duration.\n3. Restores to a scratch instance do not require change approval; restores over an existing environment require a Change Request.",
     "url": "",
-    "source": "seed"
+    "source": "seed",
+    "doc_type": "How-To Guide"
   },
   {
     "id": "DBA-002",
@@ -134,7 +203,23 @@
     ],
     "body": "1. Capture the query plan with EXPLAIN ANALYZE.\n2. Check for missing indexes on filtered/joined columns.\n3. Review lock waits via the database's active-session view.\n4. Compare row estimates vs. actuals to spot stale statistics; run ANALYZE if stale.\n5. Escalate to DBA Team if the query touches a table over 50M rows.",
     "url": "",
-    "source": "seed"
+    "source": "seed",
+    "doc_type": "Troubleshooting Guide"
+  },
+  {
+    "id": "DBA-003",
+    "team": "database",
+    "title": "Replication lag troubleshooting",
+    "tags": [
+      "replication",
+      "lag",
+      "database",
+      "troubleshooting"
+    ],
+    "body": "1. Check the replica's lag metric (seconds behind primary) and confirm it is climbing, not just briefly spiking.\n2. Check for a long-running transaction or lock on the replica blocking apply of the replication stream.\n3. Check disk I/O and network throughput on the replica \u2014 lag from I/O saturation looks different from lag caused by a single blocking query.\n4. If a single large write burst on the primary is the cause, confirm it was expected (batch job, migration) before treating it as an incident.\n5. Page DBA on-call if lag exceeds the team's SLO (5 minutes) with no clear recovering trend.",
+    "url": "",
+    "source": "seed",
+    "doc_type": "Troubleshooting Guide"
   },
   {
     "id": "WIN-001",
@@ -147,7 +232,8 @@
     ],
     "body": "1. Run `gpresult /h report.html` on the affected server to see applied vs. denied GPOs.\n2. Check `gpupdate /force` output for errors referencing a specific policy.\n3. Verify the server's OU placement in Active Directory Users and Computers.\n4. Confirm SYSVOL replication is healthy with `dfsrdiag replicationstate`.\n5. If a single GPO is denied, check WMI filters and security filtering on that GPO.",
     "url": "",
-    "source": "seed"
+    "source": "seed",
+    "doc_type": "Troubleshooting Guide"
   },
   {
     "id": "WIN-002",
@@ -160,6 +246,22 @@
     ],
     "body": "Submit a VM request via the ITSD portal under Catalog > Server Provisioning, specifying OS version, CPU/RAM, and target OU. Windows Engineering builds from the golden image and joins the domain within one business day; ensure the requested hostname follows the WIN-<site>-<role>-## naming standard.",
     "url": "",
-    "source": "seed"
+    "source": "seed",
+    "doc_type": "How-To Guide"
+  },
+  {
+    "id": "WIN-003",
+    "title": "Triaging a Windows Server BSOD",
+    "team": "windows_engineering",
+    "tags": [
+      "bsod",
+      "crash",
+      "windows server",
+      "troubleshooting"
+    ],
+    "body": "1. Note the bugcheck code shown on screen (e.g. 0x0000007E) before the server reboots \u2014 check the Reliability Monitor if you missed it.\n2. Pull the latest `.dmp` file from `C:\\Windows\\Minidump` and check the faulting module in the crash summary.\n3. If the faulting module is a third-party driver, check for a pending update from the vendor before doing anything else.\n4. Check Event Viewer > System for hardware errors (WHEA-Logger) around the crash timestamp \u2014 a recurring hardware fault needs a hardware ticket, not a driver rollback.\n5. Escalate to Windows Engineering with the bugcheck code and faulting module if the cause isn't a known driver issue.",
+    "url": "",
+    "source": "seed",
+    "doc_type": "Troubleshooting Guide"
   }
 ]

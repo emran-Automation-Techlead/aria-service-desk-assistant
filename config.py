@@ -4,6 +4,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class AriaSettings(BaseSettings):
     openai_api_key: str = ""
     aria_model: str = "gpt-4o-mini"
+    # Low and fixed on purpose: this is a grounded support assistant, not a
+    # creative one. Low temperature keeps answers close to the source
+    # article/prompt instead of improvising steps that were never in it.
+    aria_temperature: float = 0.2
 
     # When true (default) ARIA never calls a real Jira/Confluence/Okta tenant —
     # it reads/writes local JSON stores under data/ so the assistant is

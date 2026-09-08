@@ -1,45 +1,80 @@
 ARIA_SYSTEM = """You are ARIA, the internal knowledge assistant for IT operations teams
 (Service Desk, Command Center, Network, Linux, Database, and Windows Engineering).
-Answer only from the knowledge base articles you are given. Be precise, use numbered
-steps when the article has them, and never invent commands, URLs, or ticket numbers
-that are not in the source articles."""
+Ground every answer strictly in the source material you are given. Never invent a
+command, URL, hostname, ticket number, or step that is not present in that source.
+If the source only partially covers the question, say what it does cover and note
+what it does not, rather than filling the gap with a guess."""
 
 
-def answer_or_not_found_prompt(team_label: str, question: str, articles_text: str) -> str:
+# ---- Step 1: does an existing article answer this, and how confident are we? ----
+
+DECISION_SYSTEM = """You evaluate whether a knowledge base article answers a support
+question. Be strict: only mark something found if an article directly and specifically
+addresses the question. A loosely related article should be marked not found rather
+than stretched into an answer. Confidence reflects how directly the best matching
+article addresses the specific question asked, not how many articles exist."""
+
+
+def decision_prompt(team_label: str, search_intent: str, articles_text: str) -> str:
     return f"""Team: {team_label}
-User question: {question}
+Search intent: {search_intent}
 
 Knowledge base articles available to this team:
 {articles_text if articles_text else "(no articles in this team's space yet)"}
 
-Decide:
-- If one or more articles answer the question, reply with a JSON object:
-  {{"found": true, "answer": "<answer synthesized from the article(s), citing the article title>", "article_id": "<best matching article id>"}}
-- If nothing in the articles answers the question, reply with:
-  {{"found": false, "answer": ""}}
-
-Return only the JSON object, no other text."""
+Reply with JSON only:
+{{"found": true|false, "article_id": "<best matching article id, or null>", "confidence": <0.0-1.0>}}"""
 
 
-DRAFT_ARTICLE_SYSTEM = """You are ARIA's documentation writer. When the knowledge base has
-no answer to a user's question, you draft a new, publishable Confluence-style article
-so the next person with the same question finds it immediately. Write in clear,
-imperative, numbered steps where applicable. Do not invent tool names, IPs, or
-internal URLs that were not implied by the question — write generic, safe guidance
-instead and note where a human should fill in environment-specific detail."""
+# ---- Step 2: stream a plain-text answer grounded in exactly one article ----
+
+SYNTHESIZE_SYSTEM = """You answer a support question using ONLY the single knowledge base
+article provided. Write a direct, well-formed answer — numbered steps when the article
+has them. Do not add steps, commands, or caveats that are not in the article. If the
+article does not fully cover some part of the question, say so plainly instead of
+inventing the missing part."""
 
 
-def draft_article_prompt(team_label: str, question: str, conversation_context: str) -> str:
+def synthesize_prompt(article_title: str, article_body: str, question: str) -> str:
+    return f"""Article: {article_title}
+{article_body}
+
+User question: {question}
+
+Answer the question using only the article above."""
+
+
+# ---- Step 3: nothing matched — draft a new article (title fast, body streamed) ----
+
+DRAFT_TITLE_SYSTEM = """You write short, searchable Confluence article titles."""
+
+
+def draft_title_prompt(team_label: str, question: str) -> str:
     return f"""Team: {team_label}
 Question with no existing knowledge base coverage: {question}
+
+Reply with JSON only: {{"title": "<short, searchable title, no punctuation at the end>"}}"""
+
+
+DRAFT_BODY_SYSTEM = """You are ARIA's documentation writer. Write a new, publishable
+Confluence-style article body that answers the given question, in clear imperative
+numbered steps where applicable. Do not invent specific tool names, IPs, or internal
+URLs that were not implied by the question — write generic, safe guidance instead and
+note in the text where a human should fill in environment-specific detail. Output only
+the article body — no title line, no JSON, no surrounding commentary."""
+
+
+def draft_body_prompt(team_label: str, question: str, conversation_context: str) -> str:
+    return f"""Team: {team_label}
+Question: {question}
 
 Recent conversation context:
 {conversation_context}
 
-Write a new knowledge base article that answers this question. Reply with JSON:
-{{"title": "<short, searchable title>", "body": "<the article body, numbered steps where useful>"}}
-Return only the JSON object."""
+Write the article body now."""
 
+
+# ---- Log-as-ticket: chat transcript -> clean ticket ----
 
 TICKET_WRITER_SYSTEM = """You convert a raw internal-chat conversation into a clean,
 professional support ticket. Take the user's informal comments and turn them into

@@ -16,6 +16,7 @@ except ImportError:
 
 from models import Team, TEAM_META, ChatMessage
 import phi_filter
+import guardrails
 import knowledge_agent
 import ticket_writer
 import jira_client
@@ -33,6 +34,11 @@ async def search_knowledge_base(team: str, question: str) -> str:
     team: one of service_desk, command_center, network, linux, database, windows_engineering
     question: the user's question
     """
+    try:
+        await guardrails.screen(question)
+    except guardrails.GuardrailViolation as violation:
+        return f"Refused: {violation.message}"
+
     team_enum = Team(team)
     clean_question, _ = phi_filter.redact(question)
     result = await knowledge_agent.answer(team_enum, clean_question, [])
@@ -59,6 +65,11 @@ async def create_jira_ticket(team: str, conversation: str, user_email: str = "")
     conversation: newline-separated "role: message" lines
     user_email: optional reporter email, used only for Okta department lookup
     """
+    try:
+        await guardrails.screen(conversation)
+    except guardrails.GuardrailViolation as violation:
+        return f"Refused: {violation.message}"
+
     team_enum = Team(team)
     team_label = TEAM_META[team_enum]["label"]
 

@@ -65,9 +65,11 @@ class RedactionNote(BaseModel):
 
 class ChatResponse(BaseModel):
     answer: str
-    source: str  # "knowledge_base" | "drafted_article"
+    source: str  # "knowledge_base" | "drafted_article" | "clarifying_question"
     article_title: Optional[str] = None
     article_url: Optional[str] = None
+    doc_type: Optional[str] = None
+    confidence: Optional[float] = None
     redactions: List[RedactionNote] = Field(default_factory=list)
 
 
@@ -94,3 +96,4 @@ class KBArticle(BaseModel):
     body: str
     url: str = ""
     source: str = "seed"  # "seed" | "auto-drafted"
+    doc_type: str = "Knowledge Article"  # e.g. "Troubleshooting Guide", "How-To Guide", "Runbook"

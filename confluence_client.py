@@ -34,6 +34,7 @@ async def publish_article(team: Team, title: str, body: str) -> KBArticle:
             body=body,
             url=f"https://confluence.company.internal/wiki/spaces/{TEAM_META[team]['confluence_space']}/{title.replace(' ', '+')}",
             source="auto-drafted",
+            doc_type="Auto-Drafted Article",
         )
         kb_store.append(article)
         return article
@@ -78,5 +79,6 @@ async def _live_publish(team: Team, title: str, body: str) -> KBArticle:
             data = await resp.json()
     page_url = f"{settings.confluence_base_url.rstrip('/')}/wiki{data.get('_links', {}).get('webui', '')}"
     return KBArticle(
-        id=data["id"], team=team, title=title, body=body, url=page_url, source="auto-drafted"
+        id=data["id"], team=team, title=title, body=body, url=page_url,
+        source="auto-drafted", doc_type="Auto-Drafted Article",
     )
