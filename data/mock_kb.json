@@ -1,0 +1,165 @@
+[
+  {
+    "id": "SD-001",
+    "team": "service_desk",
+    "title": "How to reset your Active Directory password",
+    "tags": [
+      "password",
+      "reset",
+      "active directory",
+      "lockout"
+    ],
+    "body": "1. Go to the self-service portal at password.company.internal.\n2. Enter your network username and answer your security questions.\n3. Choose a new password meeting the 12-character complexity policy.\n4. Allow up to 5 minutes for the change to replicate to all domain controllers.\nIf the self-service portal is unavailable, call the Service Desk at x4357 for a manual reset.",
+    "url": "",
+    "source": "seed"
+  },
+  {
+    "id": "SD-002",
+    "team": "service_desk",
+    "title": "Requesting new laptop hardware",
+    "tags": [
+      "hardware",
+      "laptop",
+      "procurement"
+    ],
+    "body": "Submit a hardware request through the ITSD portal under Catalog > Hardware. Standard laptops ship within 5 business days; expedited requests require director approval and ship within 2 business days.",
+    "url": "",
+    "source": "seed"
+  },
+  {
+    "id": "CMD-001",
+    "team": "command_center",
+    "title": "Severity 1 incident escalation procedure",
+    "tags": [
+      "sev1",
+      "escalation",
+      "incident",
+      "bridge"
+    ],
+    "body": "1. Declare the incident in the ITSM tool and set severity to SEV1.\n2. Open the incident bridge (bridge.company.internal) and post the bridge link in #incident-response.\n3. Page the on-call lead for the affected service via the paging tool.\n4. Post a status update every 15 minutes until mitigated.\n5. File a post-incident review within 48 hours of resolution.",
+    "url": "",
+    "source": "seed"
+  },
+  {
+    "id": "CMD-002",
+    "team": "command_center",
+    "title": "Monitoring dashboard access request",
+    "tags": [
+      "monitoring",
+      "dashboard",
+      "access",
+      "grafana"
+    ],
+    "body": "Command Center dashboards live in Grafana under the 'NOC' org. Request access via the ITSD portal, selecting 'Command Center' as the fulfillment group. Access is granted within one business day.",
+    "url": "",
+    "source": "seed"
+  },
+  {
+    "id": "NET-001",
+    "team": "network",
+    "title": "VPN connection troubleshooting",
+    "tags": [
+      "vpn",
+      "connectivity",
+      "remote access"
+    ],
+    "body": "1. Confirm the client is on the latest VPN agent version.\n2. Verify DNS resolves internal.company.com from the client.\n3. Check that the user's account is not locked in the RADIUS server.\n4. If MFA push fails, confirm the device clock is in sync (NTP drift >30s breaks TOTP).\n5. Escalate to Network Team with a packet capture if the tunnel establishes but no traffic passes.",
+    "url": "",
+    "source": "seed"
+  },
+  {
+    "id": "NET-002",
+    "team": "network",
+    "title": "Requesting a new firewall rule",
+    "tags": [
+      "firewall",
+      "rule",
+      "change request"
+    ],
+    "body": "Firewall changes require a Change Request with source/destination CIDR, port, protocol, and business justification. Submit via the Network Team Jira project; standard changes are reviewed in the weekly CAB, emergency changes can be expedited by paging the on-call network engineer.",
+    "url": "",
+    "source": "seed"
+  },
+  {
+    "id": "LNX-001",
+    "team": "linux",
+    "title": "Disk space alert triage on RHEL hosts",
+    "tags": [
+      "disk",
+      "linux",
+      "rhel",
+      "alert"
+    ],
+    "body": "1. SSH to the host and run `df -h` to identify the full mount.\n2. Check `/var/log` for oversized logs; rotate with `logrotate -f`.\n3. Check for orphaned Docker layers with `docker system df` and prune if safe.\n4. If the root cause is legitimate growth, file a Jira ticket to expand the LVM volume.\n5. Never delete files under `/var/lib` without confirming the owning service first.",
+    "url": "",
+    "source": "seed"
+  },
+  {
+    "id": "LNX-002",
+    "team": "linux",
+    "title": "Requesting sudo access on a Linux server",
+    "tags": [
+      "sudo",
+      "access",
+      "linux",
+      "permissions"
+    ],
+    "body": "Sudo access requests go through the Linux Team Jira project with manager approval attached. Access is granted via the internal LDAP sudoers group and expires after 90 days unless renewed.",
+    "url": "",
+    "source": "seed"
+  },
+  {
+    "id": "DBA-001",
+    "team": "database",
+    "title": "Requesting a production database restore",
+    "tags": [
+      "restore",
+      "backup",
+      "database",
+      "recovery"
+    ],
+    "body": "1. Open a ticket in the DBA project specifying the database, target point-in-time, and destination instance (never restore directly over production).\n2. DBA on-call validates the backup chain and estimated restore duration.\n3. Restores to a scratch instance do not require change approval; restores over an existing environment require a Change Request.",
+    "url": "",
+    "source": "seed"
+  },
+  {
+    "id": "DBA-002",
+    "team": "database",
+    "title": "Slow query investigation checklist",
+    "tags": [
+      "performance",
+      "slow query",
+      "database",
+      "tuning"
+    ],
+    "body": "1. Capture the query plan with EXPLAIN ANALYZE.\n2. Check for missing indexes on filtered/joined columns.\n3. Review lock waits via the database's active-session view.\n4. Compare row estimates vs. actuals to spot stale statistics; run ANALYZE if stale.\n5. Escalate to DBA Team if the query touches a table over 50M rows.",
+    "url": "",
+    "source": "seed"
+  },
+  {
+    "id": "WIN-001",
+    "title": "Windows Server not applying Group Policy",
+    "team": "windows_engineering",
+    "tags": [
+      "gpo",
+      "group policy",
+      "windows server"
+    ],
+    "body": "1. Run `gpresult /h report.html` on the affected server to see applied vs. denied GPOs.\n2. Check `gpupdate /force` output for errors referencing a specific policy.\n3. Verify the server's OU placement in Active Directory Users and Computers.\n4. Confirm SYSVOL replication is healthy with `dfsrdiag replicationstate`.\n5. If a single GPO is denied, check WMI filters and security filtering on that GPO.",
+    "url": "",
+    "source": "seed"
+  },
+  {
+    "id": "WIN-002",
+    "title": "Provisioning a new Windows Server VM",
+    "team": "windows_engineering",
+    "tags": [
+      "provisioning",
+      "windows server",
+      "vm"
+    ],
+    "body": "Submit a VM request via the ITSD portal under Catalog > Server Provisioning, specifying OS version, CPU/RAM, and target OU. Windows Engineering builds from the golden image and joins the domain within one business day; ensure the requested hostname follows the WIN-<site>-<role>-## naming standard.",
+    "url": "",
+    "source": "seed"
+  }
+]

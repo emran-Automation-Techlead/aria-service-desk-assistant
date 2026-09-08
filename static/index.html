@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARIA — Internal Knowledge Assistant</title>
+<style>
+  :root {
+    --bg: #0f172a; --panel: #16213a; --panel2: #1e293b; --border: #263449;
+    --text: #e2e8f0; --muted: #94a3b8; --accent: #3b82f6; --accent2: #22c55e;
+    --warn: #f59e0b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column;
+  }
+  header {
+    padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px;
+  }
+  header h1 { font-size: 1.3em; margin: 0; color: #60a5fa; }
+  header p { margin: 0; color: var(--muted); font-size: 0.85em; }
+  .layout { flex: 1; display: flex; overflow: hidden; }
+  .sidebar {
+    width: 220px; border-right: 1px solid var(--border); padding: 16px; overflow-y: auto;
+  }
+  .sidebar label { font-size: 0.75em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .team-btn {
+    display: block; width: 100%; text-align: left; padding: 10px 12px; margin: 6px 0;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; color: var(--text);
+    cursor: pointer; font-size: 0.9em;
+  }
+  .team-btn.active { border-color: var(--accent); background: #1d3a63; }
+  .main { flex: 1; display: flex; flex-direction: column; }
+  .messages { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+  .msg { max-width: 70%; padding: 12px 14px; border-radius: 10px; line-height: 1.5; white-space: pre-wrap; }
+  .msg.user { align-self: flex-end; background: var(--accent); color: white; }
+  .msg.assistant { align-self: flex-start; background: var(--panel); border: 1px solid var(--border); }
+  .msg .src { display: block; margin-top: 8px; font-size: 0.75em; color: var(--muted); }
+  .msg .src a { color: #60a5fa; }
+  .redaction-note { align-self: flex-start; font-size: 0.75em; color: var(--warn); }
+  .composer { border-top: 1px solid var(--border); padding: 14px 24px; display: flex; gap: 10px; }
+  .composer textarea {
+    flex: 1; resize: none; background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); padding: 10px 12px; font-size: 0.9em; font-family: inherit; height: 44px;
+  }
+  .composer button {
+    padding: 0 18px; border: none; border-radius: 8px; background: var(--accent); color: white;
+    cursor: pointer; font-weight: 600;
+  }
+  .composer button.ticket { background: var(--warn); }
+  .composer button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .ticket-result {
+    margin: 0 24px 14px; padding: 12px 14px; background: #14251a; border: 1px solid #22c55e55;
+    border-radius: 8px; font-size: 0.85em;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ARIA</h1>
+  <p>Internal knowledge assistant — Service Desk · Command Center · Network · Linux · Database · Windows Engineering</p>
+</header>
+
+<div class="layout">
+  <div class="sidebar">
+    <label>Team</label>
+    <div id="teamList"></div>
+  </div>
+
+  <div class="main">
+    <div class="messages" id="messages"></div>
+    <div id="ticketResult"></div>
+    <div class="composer">
+      <textarea id="input" placeholder="Ask ARIA a question, or describe an issue..."></textarea>
+      <button id="sendBtn">Ask</button>
+      <button id="ticketBtn" class="ticket">Log as Ticket</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let teams = [];
+let currentTeam = null;
+let history = [];
+
+async function loadTeams() {
+  const res = await fetch('/api/teams');
+  teams = await res.json();
+  const list = document.getElementById('teamList');
+  teams.forEach((t, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'team-btn' + (i === 0 ? ' active' : '');
+    btn.textContent = t.label;
+    btn.onclick = () => selectTeam(t.id, btn);
+    list.appendChild(btn);
+  });
+  currentTeam = teams[0].id;
+}
+
+function selectTeam(id, btn) {
+  currentTeam = id;
+  document.querySelectorAll('.team-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  history = [];
+  document.getElementById('messages').innerHTML = '';
+  document.getElementById('ticketResult').innerHTML = '';
+}
+
+function appendMessage(role, content, extra) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.textContent = content;
+  if (extra) {
+    const src = document.createElement('span');
+    src.className = 'src';
+    src.innerHTML = extra;
+    div.appendChild(src);
+  }
+  const messages = document.getElementById('messages');
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  appendMessage('user', text);
+  history.push({ role: 'user', content: text });
+
+  document.getElementById('sendBtn').disabled = true;
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ team: currentTeam, message: text, history: history.slice(0, -1) })
+    });
+    const data = await res.json();
+    let extra = data.source === 'drafted_article'
+      ? `📝 Drafted a new article: <a href="${data.article_url}" target="_blank">${data.article_title}</a>`
+      : (data.article_title ? `📚 Source: <a href="${data.article_url}" target="_blank">${data.article_title}</a>` : '');
+    appendMessage('assistant', data.answer, extra);
+    history.push({ role: 'assistant', content: data.answer });
+  } catch (e) {
+    appendMessage('assistant', 'Something went wrong reaching ARIA: ' + e);
+  } finally {
+    document.getElementById('sendBtn').disabled = false;
+  }
+}
+
+async function logTicket() {
+  if (history.length === 0) {
+    document.getElementById('ticketResult').innerHTML =
+      '<div class="ticket-result">Chat with ARIA first, then log it as a ticket.</div>';
+    return;
+  }
+  document.getElementById('ticketBtn').disabled = true;
+  try {
+    const res = await fetch('/api/ticket', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ team: currentTeam, history })
+    });
+    const data = await res.json();
+    document.getElementById('ticketResult').innerHTML = `
+      <div class="ticket-result">
+        ✅ Filed <strong>${data.ticket_key}</strong> (${data.priority}) —
+        <a href="${data.ticket_url}" target="_blank">${data.ticket_url}</a><br>
+        <em>${data.summary}</em>
+      </div>`;
+  } catch (e) {
+    document.getElementById('ticketResult').innerHTML = '<div class="ticket-result">Failed to log ticket: ' + e + '</div>';
+  } finally {
+    document.getElementById('ticketBtn').disabled = false;
+  }
+}
+
+document.getElementById('sendBtn').onclick = sendMessage;
+document.getElementById('ticketBtn').onclick = logTicket;
+document.getElementById('input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+loadTeams();
+</script>
+
+</body>
+</html>
